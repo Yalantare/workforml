@@ -1,0 +1,46 @@
+{
+  "total_listings": 176419,
+  "avg_price": 440591.4041798219,
+  "median_price": 275000.0,
+  "avg_size": 126.98389062402576,
+  "median_size": 115.0,
+  "avg_price_per_sqm": 3317.063791071443,
+  "top_cities_distribution": {
+    "İstanbul": 46599,
+    "Aydın": 18122,
+    "Ankara": 15157,
+    "Antalya": 12143,
+    "İzmir": 11867,
+    "Balıkesir": 8188,
+    "Mersin": 5832,
+    "Adana": 5363,
+    "Muğla": 5238,
+    "Bursa": 4248
+  },
+  "sub_type_distribution": {
+    "Daire": 153511,
+    "Villa": 10866,
+    "Müstakil Ev": 4267,
+    "Yazlık": 3361,
+    "Rezidans": 2813,
+    "Komple Bina": 1091,
+    "Çiftlik Evi": 153,
+    "Prefabrik Ev": 146,
+    "Köşk / Konak / Yalı": 98,
+    "Yalı Dairesi": 51,
+    "Kooperatif": 43,
+    "Loft": 19
+  },
+  "heating_type_distribution": {
+    "Kombi (Doğalgaz)": 88053,
+    "Klima": 34002,
+    "Merkezi Sistem (Isı Payı Ölçer)": 13506,
+    "Yok": 10787,
+    "Merkezi Sistem": 9363,
+    "Kalorifer (Doğalgaz)": 5204,
+    "Kat Kaloriferi": 3582,
+    "Yerden Isıtma": 3369,
+    "Soba (Kömür)": 3298,
+    "Kombi (Elektrikli)": 1784
+  }
+}
