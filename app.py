@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import joblib
 import os
+import json
+import plotly.express as px
 
 st.set_page_config(
     page_title="Zingat Real Estate - Прогноз стоимости",
@@ -103,18 +105,84 @@ with tab1:
 with tab2:
     st.subheader("Статистика по рынку недвижимости (Zingat)")
     
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Медианная цена", "275,000 TRY")
-    c2.metric("Средняя площадь", "127 м²")
-    c3.metric("Доля квартир", "87%")
+    # Загружаем данные из data_summary.json если доступен
+    summary_path = os.path.join(os.path.dirname(__file__), 'data', 'data_summary.json')
+    if not os.path.exists(summary_path):
+        summary_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'data_summary.json')
+    
+    summary_data = None
+    if os.path.exists(summary_path):
+        try:
+            with open(summary_path, 'r', encoding='utf-8') as f:
+                summary_data = json.load(f)
+        except Exception:
+            pass
+
+    c1, c2, c3, c4 = st.columns(4)
+    med_price = f"{summary_data['median_price']:,.0f} TRY" if summary_data else "275,000 TRY"
+    avg_size = f"{summary_data['avg_size']:.0f} м²" if summary_data else "127 м²"
+    total_listings = f"{summary_data['total_listings']:,}" if summary_data else "176,419"
+    avg_sqm = f"{summary_data['avg_price_per_sqm']:,.0f} TRY" if summary_data else "3,317 TRY"
+    
+    c1.metric("Медианная цена", med_price)
+    c2.metric("Средняя площадь", avg_size)
+    c3.metric("Цена за м²", avg_sqm)
+    c4.metric("Всего объявлений", total_listings)
     
     st.markdown("---")
-    st.write("#### Сравнение средних цен по городам:")
-    city_chart = pd.DataFrame({
-        'Город': ['İstanbul', 'Muğla', 'Antalya', 'İzmir', 'Aydın', 'Bursa', 'Ankara'],
-        'Средняя цена (тыс. TRY)': [620, 580, 490, 420, 340, 310, 280]
-    }).set_index('Город')
-    st.bar_chart(city_chart)
+    
+    col_g1, col_g2 = st.columns(2)
+    
+    with col_g1:
+        st.markdown("##### 💰 Сравнение средних цен по городам:")
+        city_df = pd.DataFrame({
+            'Город': ['İstanbul', 'Muğla', 'Antalya', 'İzmir', 'Aydın', 'Bursa', 'Ankara'],
+            'Средняя цена (тыс. TRY)': [620, 580, 490, 420, 340, 310, 280]
+        })
+        fig_price = px.bar(
+            city_df,
+            x='Город',
+            y='Средняя цена (тыс. TRY)',
+            text='Средняя цена (тыс. TRY)',
+            color='Средняя цена (тыс. TRY)',
+            color_continuous_scale='Blues'
+        )
+        fig_price.update_traces(texttemplate='%{text}k', textposition='outside')
+        fig_price.update_layout(
+            showlegend=False,
+            margin=dict(l=20, r=20, t=30, b=20),
+            xaxis_title="",
+            yaxis_title="тыс. TRY",
+            height=380
+        )
+        st.plotly_chart(fig_price, use_container_width=True)
+
+    with col_g2:
+        st.markdown("##### 🏘️ Распределение по типам жилья:")
+        if summary_data and 'sub_type_distribution' in summary_data:
+            top_types = dict(list(summary_data['sub_type_distribution'].items())[:5])
+            type_df = pd.DataFrame({
+                'Тип': list(top_types.keys()),
+                'Объявлений': list(top_types.values())
+            })
+        else:
+            type_df = pd.DataFrame({
+                'Тип': ['Daire', 'Villa', 'Müstakil Ev', 'Yazlık', 'Rezidans'],
+                'Объявлений': [153511, 10866, 4267, 3361, 2813]
+            })
+        fig_type = px.pie(
+            type_df,
+            names='Тип',
+            values='Объявлений',
+            hole=0.45,
+            color_discrete_sequence=px.colors.qualitative.Pastel
+        )
+        fig_type.update_layout(
+            margin=dict(l=20, r=20, t=30, b=20),
+            legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5),
+            height=380
+        )
+        st.plotly_chart(fig_type, use_container_width=True)
 
 with tab3:
     st.subheader("О проекте и контакты")
