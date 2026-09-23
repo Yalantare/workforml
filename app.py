@@ -64,7 +64,8 @@ with tab1:
         )
 
     with col3:
-        tom = st.slider("Дней на рынке (Time on Market):", min_value=1, max_value=365, value=30)
+        st.markdown("**Готовы к расчету?**")
+        st.caption("Модель использует предобработанные признаки без утечки данных, кодирование One-Hot и логарифмическую регрессию.")
         st.markdown("<br>", unsafe_allow_html=True)
         calc_button = st.button("🚀 Рассчитать стоимость", use_container_width=True, type="primary")
 
@@ -76,22 +77,21 @@ with tab1:
             'building_age_num': building_age_num,
             'sub_type': sub_type,
             'city': city,
-            'heating_type': heating_type,
-            'tom': tom
+            'heating_type': heating_type
         }])
         
-        # Предсказание
+        # Предсказание через сохраненный пайплайн
         if pipeline_data is not None and isinstance(pipeline_data, dict):
             model = pipeline_data['model']
-            encoder = pipeline_data['encoder']
-            cat_cols = pipeline_data['cat_cols']
+            preprocessor = pipeline_data['preprocessor']
+            mae = pipeline_data.get('mae', 145000)
             
-            # кодируем категории
-            input_encoded = input_data.copy()
-            input_encoded[cat_cols] = encoder.transform(input_encoded[cat_cols].astype(str))
+            # трансформация признаков
+            input_proc = preprocessor.transform(input_data)
             
-            predicted_price = model.predict(input_encoded)[0]
-            mae = 125000  # средняя ошибка модели
+            # прогноз с обратным экспоненциальным преобразованием
+            pred_log = model.predict(input_proc)[0]
+            predicted_price = float(np.expm1(pred_log))
             
             st.success(f"### Прогнозируемая цена: **{predicted_price:,.0f} TRY** (~ {predicted_price/35:,.0f} $)")
             st.info(f"Доверительный диапазон (±MAE): от **{max(20000, predicted_price - mae):,.0f}** до **{predicted_price + mae:,.0f} TRY**")
@@ -195,7 +195,7 @@ with tab3:
     
     **Описание модели:**
     * Алгоритм: **Random Forest Regressor**
-    * Входные признаки: общая площадь, число комнат, возраст дома, тип жилья, локация, отопление, время на рынке.
-    * Метрики: R² ≈ 0.61, MAE ≈ 122,850 TRY.
-    * Особенности: кодирование категорий и масштабирование обучены строго на обучающей выборке (защита от утечки данных).
+    * Входные признаки: общая площадь, число комнат, возраст дома, тип жилья, локация (город), отопление.
+    * Метрики: R² ≈ 0.41, MAE ≈ 145,300 TRY, MAPE ≈ 33%.
+    * Особенности: логарифмирование целевой переменной, кодирование One-Hot и стандартизация обучены строго на обучающей выборке (защита от утечки данных).
     """)
